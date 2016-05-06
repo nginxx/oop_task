@@ -27,12 +27,18 @@ class Library
 
   def add_reader(object)
     validate_object(object,Reader)
-    @authors << object_parser(object)
+    @readers << object_parser(object)
   end
 
   def add_order(object)
     validate_object(object,Order)
-    @authors << object_parser(object)
+    @orders << object_parser(object)
+  end
+
+  def save_to_db(attribute,filename)
+    file = File.open("storage/#{filename}.json", 'a+')
+    file.puts(attribute.to_json)
+    file.close
   end
 
   private
@@ -87,5 +93,10 @@ library.add_order(order_3)
 library.add_order(order_4)
 library.add_order(order_5)
 library.add_order(order_6)
+
+library.save_to_db(library.books,'books')
+library.save_to_db(library.authors,'authors')
+library.save_to_db(library.readers,'readers')
+library.save_to_db(library.orders,'orders')
 
 
