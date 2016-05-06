@@ -8,43 +8,84 @@ require_relative 'order'
 class Library
   attr_accessor :books, :orders, :readers, :authors
 
-  def initialize(*args)
-    args.map do |source|
-      items = []
-      file = File.open("storage/#{source}.json", 'a+')
-      file.map do |item|
-        item = JSON.parse(item)
-        items << item
-      end
-      instance_variable_set("@#{source}".to_sym, items)
-    end
+  def initialize
+    @books = []
+    @orders = []
+    @readers = []
+    @authors = []
   end
 
-  def save_item(item_object)
+  def add_book(object)
+    validate_object(object,Book)
+    @books << object_parser(object)
+  end
+
+  def add_author(object)
+    validate_object(object,Author)
+    @authors << object_parser(object)
+  end
+
+  def add_reader(object)
+    validate_object(object,Reader)
+    @authors << object_parser(object)
+  end
+
+  def add_order(object)
+    validate_object(object,Order)
+    @authors << object_parser(object)
+  end
+
+  private
+  def object_parser(object)
     attributes = {}
-    file_name = item_object.class.to_s.downcase.pluralize
-    file = File.open("storage/#{file_name}.json", 'a')
-    item_object.instance_variables.map do |attr|
-      attributes[attr.to_s.delete('@')] = item_object.instance_variable_get(attr)
+    object.instance_variables.map do |attr|
+      attributes[attr.to_s.delete('@')] = object.instance_variable_get(attr)
     end
-    file.puts(attributes.to_json)
+    attributes
   end
 
-  def popular_book
+  def validate_object(object, classname)
+    raise ArgumentError, "Needed #{classname} object, #{object.class} given" unless object.is_a? classname
   end
+
 end
 
-library = Library.new('books', 'orders', 'readers', 'authors')
-author = Author.new('Ivan', 'Ivan biography')
-book = Book.new('King', author.name)
-reader = Reader.new('Sergei', 'email@email.com', 'Kiev', 'Uliyanova str.', '152')
-order = Order.new(book.title, reader.name, Time.now)
-library.save_item(book)
-library.save_item(author)
-library.save_item(reader)
-library.save_item(order)
+library = Library.new
 
-puts library.books
+author_1= Author.new('Author_1', 'Author_1 biography')
+author_2= Author.new('Author_2', 'Author_2 biography')
 
+book_1 = Book.new('Book_1', author_1.name)
+book_2 = Book.new('Book_2', author_2.name)
+book_3 = Book.new('Book_3', author_2.name)
+book_4 = Book.new('Book_4', author_2.name)
+
+reader_1 = Reader.new('Reader_1', 'email@email_1', 'City_1', 'Street_1', 1)
+reader_2 = Reader.new('Reader_2', 'email@email_2', 'City_2', 'Street_2', 2)
+
+order_1 = Order.new(book_4.title, reader_1.name, Time.now)
+order_2 = Order.new(book_1.title, reader_1.name, Time.now)
+order_3 = Order.new(book_3.title, reader_2.name, Time.now)
+order_4 = Order.new(book_2.title, reader_2.name, Time.now)
+order_5 = Order.new(book_1.title, reader_1.name, Time.now)
+order_6 = Order.new(book_1.title, reader_2.name, Time.now)
+
+library.add_author(author_1)
+library.add_author(author_2)
+
+library.add_reader(reader_1)
+library.add_reader(reader_2)
+
+library.add_book(book_1)
+library.add_book(book_2)
+library.add_book(book_3)
+library.add_book(book_4)
+
+library.add_order(order_1)
+library.add_order(order_2)
+library.add_order(order_3)
+library.add_order(order_4)
+library.add_order(order_5)
+library.add_order(order_6)
 
 
