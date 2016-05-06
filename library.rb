@@ -1,5 +1,4 @@
 require 'json'
-require 'active_support/inflector'
 require_relative 'author'
 require_relative 'book'
 require_relative 'reader'
@@ -44,10 +43,23 @@ class Library
   end
 
   def popular_book
+    select_top_item('book')
+  end
+
+  def active_reader
+    select_top_item('reader')
+  end
+
+  def popular_books_readers
     orders = retrieve_db_data('orders')
+    arr = []
     books = orders.group_by {|order| order['book']}
-    top_book = books.sort_by { |key, val| val.length }.last[0]
-    puts 'The most popular book is ' + top_book
+    top_books = books.sort_by { |key, val| val.length }[-3..3]
+    top_books.map do |book|
+      arr += book[1]
+    end
+    count_readers = arr.uniq{|order| order['reader']}.size
+    puts count_readers.to_s + ' people ordered 3 popular books'
   end
 
   private
@@ -73,6 +85,13 @@ class Library
     items
   end
 
+  def select_top_item(item)
+    orders = retrieve_db_data('orders')
+    items = orders.group_by {|order| order[item]}
+    top_item = items.sort_by { |key, val| val.length }.last[0]
+    puts 'The most popular ' + item + ' is ' + top_item
+  end
+
 end
 
 library = Library.new
@@ -92,7 +111,7 @@ order_1 = Order.new(book_4.title, reader_1.name, Time.now)
 order_2 = Order.new(book_1.title, reader_1.name, Time.now)
 order_3 = Order.new(book_3.title, reader_2.name, Time.now)
 order_4 = Order.new(book_2.title, reader_2.name, Time.now)
-order_5 = Order.new(book_1.title, reader_1.name, Time.now)
+order_5 = Order.new(book_1.title, reader_2.name, Time.now)
 order_6 = Order.new(book_1.title, reader_2.name, Time.now)
 
 library.add_author(author_1)
@@ -119,5 +138,7 @@ library.save_to_db(library.readers, 'readers')
 library.save_to_db(library.orders, 'orders')
 
 library.popular_book
+library.active_reader
+library.popular_books_readers
 
 
