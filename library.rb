@@ -16,29 +16,38 @@ class Library
   end
 
   def add_book(object)
-    validate_object(object,Book)
+    validate_object(object, Book)
     @books << object_parser(object)
   end
 
   def add_author(object)
-    validate_object(object,Author)
+    validate_object(object, Author)
     @authors << object_parser(object)
   end
 
   def add_reader(object)
-    validate_object(object,Reader)
+    validate_object(object, Reader)
     @readers << object_parser(object)
   end
 
   def add_order(object)
-    validate_object(object,Order)
+    validate_object(object, Order)
     @orders << object_parser(object)
   end
 
-  def save_to_db(attribute,filename)
+  def save_to_db(attribute, filename)
     file = File.open("storage/#{filename}.json", 'a+')
-    file.puts(attribute.to_json)
+    attribute.map do |item|
+      file.puts(item.to_json)
+    end
     file.close
+  end
+
+  def popular_book
+    orders = retrieve_db_data('orders')
+    books = orders.group_by {|order| order['book']}
+    top_book = books.sort_by { |key, val| val.length }.last[0]
+    puts 'The most popular book is ' + top_book
   end
 
   private
@@ -52,6 +61,16 @@ class Library
 
   def validate_object(object, classname)
     raise ArgumentError, "Needed #{classname} object, #{object.class} given" unless object.is_a? classname
+  end
+
+  def retrieve_db_data(filename)
+    items = []
+    file = File.open("storage/#{filename}.json", 'r')
+    file.each do |item|
+      item = JSON.parse(item)
+      items << item
+    end
+    items
   end
 
 end
@@ -94,9 +113,11 @@ library.add_order(order_4)
 library.add_order(order_5)
 library.add_order(order_6)
 
-library.save_to_db(library.books,'books')
-library.save_to_db(library.authors,'authors')
-library.save_to_db(library.readers,'readers')
-library.save_to_db(library.orders,'orders')
+library.save_to_db(library.books, 'books')
+library.save_to_db(library.authors, 'authors')
+library.save_to_db(library.readers, 'readers')
+library.save_to_db(library.orders, 'orders')
+
+library.popular_book
 
 
