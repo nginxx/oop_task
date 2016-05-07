@@ -55,7 +55,7 @@ class Library
     sorted_books = sort_items('book')
     sorted_books.last(3).map { |book| arr += book[1] }
     count_readers = arr.uniq { |order| order['reader'] }.size
-    puts count_readers.to_s + ' people ordered 3 popular books'
+    puts count_readers.to_s + ' people ordered 3 most popular books'
   end
 
   private
