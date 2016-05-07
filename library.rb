@@ -34,35 +34,32 @@ class Library
     @orders << object_parser(object)
   end
 
-  def save_to_db(attribute, filename)
+  def save_to_db(items, filename)
     file = File.open("storage/#{filename}.json", 'a+')
-    attribute.map do |item|
-      file.puts(item.to_json)
-    end
+    items.map { |item| file.puts(item.to_json) }
     file.close
   end
 
   def popular_book
-    select_top_item('book')
+    sorted_books = sort_items('book')
+    puts 'The most popular book is ' + sorted_books.last[0]
   end
 
   def active_reader
-    select_top_item('reader')
+    sorted_readers = sort_items('reader')
+    puts 'The most active reader is ' + sorted_readers.last[0]
   end
 
-  def popular_books_readers
-    orders = retrieve_db_data('orders')
+  def count_books_readers
     arr = []
-    books = orders.group_by {|order| order['book']}
-    top_books = books.sort_by { |key, val| val.length }[-3..3]
-    top_books.map do |book|
-      arr += book[1]
-    end
-    count_readers = arr.uniq{|order| order['reader']}.size
+    sorted_books = sort_items('book')
+    sorted_books.last(3).map { |book| arr += book[1] }
+    count_readers = arr.uniq { |order| order['reader'] }.size
     puts count_readers.to_s + ' people ordered 3 popular books'
   end
 
   private
+
   def object_parser(object)
     attributes = {}
     object.instance_variables.map do |attr|
@@ -72,32 +69,32 @@ class Library
   end
 
   def validate_object(object, classname)
-    raise ArgumentError, "Needed #{classname} object, #{object.class} given" unless object.is_a? classname
+    unless object.is_a? classname
+      raise ArgumentError, "Needed #{classname} object, #{object.class} given"
+    end
   end
 
   def retrieve_db_data(filename)
     items = []
     file = File.open("storage/#{filename}.json", 'r')
-    file.each do |item|
+    file.map do |item|
       item = JSON.parse(item)
       items << item
     end
     items
   end
 
-  def select_top_item(item)
+  def sort_items(item)
     orders = retrieve_db_data('orders')
-    items = orders.group_by {|order| order[item]}
-    top_item = items.sort_by { |key, val| val.length }.last[0]
-    puts 'The most popular ' + item + ' is ' + top_item
+    items = orders.group_by { |order| order[item] }
+    items.sort_by { |_, val| val.length }
   end
-
 end
 
 library = Library.new
 
-author_1= Author.new('Author_1', 'Author_1 biography')
-author_2= Author.new('Author_2', 'Author_2 biography')
+author_1 = Author.new('Author_1', 'Author_1 biography')
+author_2 = Author.new('Author_2', 'Author_2 biography')
 
 book_1 = Book.new('Book_1', author_1.name)
 book_2 = Book.new('Book_2', author_2.name)
@@ -139,6 +136,4 @@ library.save_to_db(library.orders, 'orders')
 
 library.popular_book
 library.active_reader
-library.popular_books_readers
-
-
+library.count_books_readers
