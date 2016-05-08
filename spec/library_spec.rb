@@ -1,5 +1,4 @@
 require 'json'
-require 'active_support/core_ext/kernel/reporting'
 require_relative '../author'
 require_relative '../book'
 require_relative '../reader'
@@ -14,7 +13,7 @@ RSpec.shared_examples 'Check add_methods' do |object, object2, method|
   end
 
   it 'Check add_methods return value.' do
-    expect(library.send(method.to_sym, object2).class).to eq(Array)
+    expect(library.send(method.to_sym, object2).pop.class).to eq(Hash)
   end
 end
 
