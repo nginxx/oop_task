@@ -19,8 +19,10 @@ end
 
 RSpec.shared_examples 'Check statistics methods' do |method|
   it 'Check statistics methods return value.' do
-    expect(STDOUT).to receive(:puts).with(include('most'))
+    $stdout = StringIO.new
     library.send(method.to_sym)
+    $stdout.rewind
+    expect($stdout.gets.split.size).to eq(6)
   end
 end
 
