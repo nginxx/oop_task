@@ -51,18 +51,16 @@ class Library
   end
 
   def count_books_readers
-    arr = []
-    sorted_books = sort_items('book')
-    sorted_books.last(3).map { |book| arr += book[1] }
-    count_readers = arr.uniq { |order| order['reader'] }.size
-    puts count_readers.to_s + ' people ordered 3 popular books'
+    count = sort_items('book').last(3).flatten
+                .uniq { |order| order['reader'] }.drop(1).size
+    puts count.to_s + ' people ordered 3 popular books'
   end
 
   private
 
   def object_parser(object)
     attributes = {}
-    object.instance_variables.map do |attr|
+    object.instance_variables.each do |attr|
       attributes[attr.to_s.delete('@')] = object.instance_variable_get(attr)
     end
     attributes
@@ -75,18 +73,12 @@ class Library
   end
 
   def retrieve_db_data(filename)
-    items = []
     file = File.open("storage/#{filename}.json", 'r')
-    file.map do |item|
-      item = JSON.parse(item)
-      items << item
-    end
-    items
+    file.map { |item| JSON.parse(item) }
   end
 
   def sort_items(item)
-    orders = retrieve_db_data('orders')
-    items = orders.group_by { |order| order[item] }
+    items = retrieve_db_data('orders').group_by { |order| order[item] }
     items.sort_by { |_, val| val.length }
   end
 end
